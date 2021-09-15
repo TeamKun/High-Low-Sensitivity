@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "net.kunmc.lab.highlowsensitivity.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "futoize.refmap.json",
+  "mixins": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

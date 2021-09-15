@@ -1,0 +1,10 @@
+modLoader = "javafml"
+loaderVersion = "[36,)"
+license = "MIT License"
+[[mods]]
+modId = "highlowsensitivity"
+version = "${file.jarVersion}"
+displayName = "High-Low Sensitivity"
+credits = "KUN Dev Lab"
+authors = "MORIMORI0317"
+description = '''ダイナモ感度!!'''
