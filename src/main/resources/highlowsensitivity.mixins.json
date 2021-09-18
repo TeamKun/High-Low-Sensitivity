@@ -2,11 +2,15 @@
   "required": true,
   "package": "net.kunmc.lab.highlowsensitivity.mixin",
   "compatibilityLevel": "JAVA_8",
-  "refmap": "futoize.refmap.json",
+  "refmap": "highlowsensitivity.refmap.json",
   "mixins": [
+    "MinecraftServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
-  "minVersion": "0.8"
+  "minVersion": "0.8",
+  "client": [
+    "client.SliderPercentageOptionMixin"
+  ]
 }
