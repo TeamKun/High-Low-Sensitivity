@@ -16,7 +16,10 @@ public class ServerHandler {
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent e) {
         if (!e.getPlayer().level.isClientSide()) {
-            SensitivityManager.getInstance().sendUpdatePacket((ServerPlayerEntity) e.getPlayer());
+            SensitivityManager sm = SensitivityManager.getInstance();
+            if (sm.getMode() != SensitivityManager.Mode.NONE)
+                sm.getSensitivityState(e.getPlayer().getGameProfile().getId()).setLocked(true);
+            sm.sendUpdatePacket((ServerPlayerEntity) e.getPlayer());
         }
     }
 }

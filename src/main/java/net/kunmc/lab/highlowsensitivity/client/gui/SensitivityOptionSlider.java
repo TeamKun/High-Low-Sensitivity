@@ -10,11 +10,16 @@ import net.minecraft.client.gui.widget.OptionSlider;
 import net.minecraft.client.settings.SliderPercentageOption;
 import net.minecraft.util.ResourceLocation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SensitivityOptionSlider extends OptionSlider {
+    public static final List<SensitivityOptionSlider> SLIDERS = new ArrayList<>();
     private static final ResourceLocation SENS_TEXTURE = new ResourceLocation(HighLowSensitivity.MODID, "textures/gui/sensitivity_widgets.png");
 
     public SensitivityOptionSlider(GameSettings p_i51129_1_, int p_i51129_2_, int p_i51129_3_, int p_i51129_4_, int p_i51129_5_, SliderPercentageOption p_i51129_6_) {
         super(p_i51129_1_, p_i51129_2_, p_i51129_3_, p_i51129_4_, p_i51129_5_, p_i51129_6_);
+        SLIDERS.add(this);
     }
 
     @Override
@@ -64,5 +69,10 @@ public class SensitivityOptionSlider extends OptionSlider {
             return false;
 
         return super.keyPressed(p_231046_1_, p_231046_2_, p_231046_3_);
+    }
+
+    public void update() {
+        this.value = Minecraft.getInstance().options.sensitivity;
+        updateMessage();
     }
 }

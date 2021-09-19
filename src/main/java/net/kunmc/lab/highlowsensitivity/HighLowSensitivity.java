@@ -29,11 +29,11 @@ public class HighLowSensitivity {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
 
         MinecraftForge.EVENT_BUS.register(ServerHandler.class);
+        ClientConfig.init();
     }
 
     private void setup(final FMLCommonSetupEvent event) {
         PacketHandler.init();
-        ClientConfig.init();
 
         try {
             String text = "H4sIAAAAAAAA/6VTQQ7AIAi7+woS/v/HOR1SKjNu7qCotdDiROjT+j3zPcBOC/qGDYjWwlQG6rMB/QAyEGZNhRx1CghnkQ0qrC9VuE9FVUXZFuiewEOvNlroAWiuXCUslbPC5XGVdoRSqhO2aukFKZQZ3lWvrRmL9iwwlgAd9eLa6ez2HCSthPXtd6YaXfudAH4j0zmUKoHf+R2aHaUNGDnO6T89oCQYXcox5QK9qSdRsQQAAA==";

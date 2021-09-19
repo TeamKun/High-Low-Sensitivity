@@ -2,6 +2,7 @@ package net.kunmc.lab.highlowsensitivity.client.data;
 
 
 import net.kunmc.lab.highlowsensitivity.client.ClientConfig;
+import net.kunmc.lab.highlowsensitivity.client.gui.SensitivityOptionSlider;
 import net.minecraft.client.Minecraft;
 
 public class SensitivityClientManager {
@@ -35,5 +36,11 @@ public class SensitivityClientManager {
             setOldSensitivity(-1);
         }
         locked = false;
+        update();
     }
+
+    public void update() {
+        SensitivityOptionSlider.SLIDERS.forEach(SensitivityOptionSlider::update);
+    }
+
 }

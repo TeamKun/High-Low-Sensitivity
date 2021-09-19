@@ -16,11 +16,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public class SensitivityManager implements INBTSerializable<CompoundNBT> {
     private static final SensitivityManager INSTANCE = new SensitivityManager();
-    private static Map<UUID, SensitivityState> playerStates = new HashMap<>();
+    private static final Map<UUID, SensitivityState> playerStates = new HashMap<>();
+    private static final Random random = new Random();
+    private Mode mode = Mode.NONE;
 
     public static SensitivityManager getInstance() {
         return INSTANCE;
@@ -32,10 +36,18 @@ public class SensitivityManager implements INBTSerializable<CompoundNBT> {
         return playerStates.get(uuid);
     }
 
-    public void reset() {
-        playerStates.clear();
+    public void setMode(Mode mode) {
+        this.mode = mode;
     }
 
+    public Mode getMode() {
+        return mode;
+    }
+
+    public void reset() {
+        this.mode = Mode.NONE;
+        playerStates.clear();
+    }
     public void sendUpdatePacket(ServerPlayerEntity player) {
         SensitivityState state = getSensitivityState(player.getGameProfile().getId());
         PacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new SensitivityMessage(state.isLocked(), state.getFixedSensitivity()));
@@ -45,12 +57,14 @@ public class SensitivityManager implements INBTSerializable<CompoundNBT> {
     public CompoundNBT serializeNBT() {
         CompoundNBT tag = new CompoundNBT();
         NBTUtil.writeSensitivityData(tag, "Data", playerStates);
+        tag.putInt("Mode", mode.getNum());
         return tag;
     }
 
     @Override
     public void deserializeNBT(CompoundNBT tag) {
         NBTUtil.readSensitivityData(tag, "Data", playerStates);
+        this.mode = Mode.getByNum(tag.getInt("Mode"));
     }
 
     public Path getPath() {
@@ -81,6 +95,33 @@ public class SensitivityManager implements INBTSerializable<CompoundNBT> {
                 deserializeNBT(CompressedStreamTools.readCompressed(saveFile).getCompound("data"));
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static enum Mode {
+        NONE(0, () -> -1d), HIGH(1, () -> 1d), LOW(2, () -> 0d), RANDOM(3, () -> Double.valueOf(random.nextInt(2)));
+        private final int num;
+        private final Supplier<Double> sensitivity;
+
+        Mode(int num, Supplier<Double> sensitivity) {
+            this.num = num;
+            this.sensitivity = sensitivity;
+        }
+
+        public int getNum() {
+            return num;
+        }
+
+        public Supplier<Double> getSensitivity() {
+            return sensitivity;
+        }
+
+        public static Mode getByNum(int num) {
+            for (Mode value : values()) {
+                if (value.getNum() == num)
+                    return value;
+            }
+            return NONE;
         }
     }
 }

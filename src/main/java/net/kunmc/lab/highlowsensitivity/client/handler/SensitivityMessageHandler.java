@@ -13,7 +13,6 @@ public class SensitivityMessageHandler {
     public static void reversiveMessage(SensitivityMessage message, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().setPacketHandled(true);
         SensitivityClientManager scm = SensitivityClientManager.getInstance();
-
         if (message.reset) {
             scm.reset();
             return;
@@ -28,5 +27,6 @@ public class SensitivityMessageHandler {
             mc.options.sensitivity = scm.getOldSensitivity();
             scm.setOldSensitivity(-1);
         }
+        scm.update();
     }
 }
