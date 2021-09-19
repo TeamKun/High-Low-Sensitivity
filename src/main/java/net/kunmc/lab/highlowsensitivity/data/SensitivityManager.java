@@ -1,10 +1,14 @@
 package net.kunmc.lab.highlowsensitivity.data;
 
+import net.kunmc.lab.highlowsensitivity.packet.PacketHandler;
+import net.kunmc.lab.highlowsensitivity.packet.SensitivityMessage;
 import net.kunmc.lab.highlowsensitivity.util.NBTUtil;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.util.SharedConstants;
 import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +24,21 @@ public class SensitivityManager implements INBTSerializable<CompoundNBT> {
 
     public static SensitivityManager getInstance() {
         return INSTANCE;
+    }
+
+    public SensitivityState getSensitivityState(UUID uuid) {
+        if (!playerStates.containsKey(uuid))
+            playerStates.put(uuid, new SensitivityState(false, -1));
+        return playerStates.get(uuid);
+    }
+
+    public void reset() {
+        playerStates.clear();
+    }
+
+    public void sendUpdatePacket(ServerPlayerEntity player) {
+        SensitivityState state = getSensitivityState(player.getGameProfile().getId());
+        PacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new SensitivityMessage(state.isLocked(), state.getFixedSensitivity()));
     }
 
     @Override
