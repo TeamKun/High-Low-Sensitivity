@@ -23,7 +23,7 @@ public class SensitivityCommand {
         d.register(Commands.literal("sensitivity").requires((source) -> source.hasPermission(2))
                 .then(Commands.literal("lock").then(Commands.argument("target", EntityArgument.players()).executes((context -> lockedPlayer(context.getSource(), EntityArgument.getPlayers(context, "target"), true)))))
                 .then(Commands.literal("unlock").then(Commands.argument("target", EntityArgument.players()).executes((context -> lockedPlayer(context.getSource(), EntityArgument.getPlayers(context, "target"), false)))))
-                .then(Commands.literal("set").then(Commands.argument("value", DoubleArgumentType.doubleArg(0, 200)).then(Commands.argument("target", EntityArgument.players()).executes((context -> setSensitivity(context.getSource(), EntityArgument.getPlayers(context, "target"), DoubleArgumentType.getDouble(context, "value")))))))
+                .then(Commands.literal("set").then(Commands.argument("value", DoubleArgumentType.doubleArg(0, 0x114514)).then(Commands.argument("target", EntityArgument.players()).executes((context -> setSensitivity(context.getSource(), EntityArgument.getPlayers(context, "target"), DoubleArgumentType.getDouble(context, "value")))))))
                 .then(Commands.literal("reset").executes((context -> reset(context.getSource()))))
                 .then(Commands.literal("mode").executes((context -> reset(context.getSource())))
                         .then(Commands.literal("none").executes(context -> setMode(context.getSource(), SensitivityManager.Mode.NONE, -1)))

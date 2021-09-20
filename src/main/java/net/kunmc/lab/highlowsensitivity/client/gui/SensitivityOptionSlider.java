@@ -27,6 +27,7 @@ public class SensitivityOptionSlider extends OptionSlider {
         super.renderBg(matrixStack, p_230441_2_, p_230441_3_, p_230441_4_);
     }
 
+
     @Override
     public void renderButton(MatrixStack matrixStack, int p_230431_2_, int p_230431_3_, float p_230431_4_) {
         super.renderButton(matrixStack, p_230431_2_, p_230431_3_, p_230431_4_);
