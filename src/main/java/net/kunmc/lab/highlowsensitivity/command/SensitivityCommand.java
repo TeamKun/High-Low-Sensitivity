@@ -2,6 +2,7 @@ package net.kunmc.lab.highlowsensitivity.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import net.kunmc.lab.highlowsensitivity.ServerConfig;
 import net.kunmc.lab.highlowsensitivity.data.SensitivityManager;
 import net.kunmc.lab.highlowsensitivity.data.SensitivityState;
@@ -12,6 +13,7 @@ import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.util.*;
@@ -25,6 +27,11 @@ public class SensitivityCommand {
                 .then(Commands.literal("unlock").then(Commands.argument("target", EntityArgument.players()).executes((context -> lockedPlayer(context.getSource(), EntityArgument.getPlayers(context, "target"), false)))))
                 .then(Commands.literal("set").then(Commands.argument("value", DoubleArgumentType.doubleArg(0, 0x114514)).then(Commands.argument("target", EntityArgument.players()).executes((context -> setSensitivity(context.getSource(), EntityArgument.getPlayers(context, "target"), DoubleArgumentType.getDouble(context, "value")))))))
                 .then(Commands.literal("reset").executes((context -> reset(context.getSource()))))
+                .then(Commands.literal("config")
+                        .then(Commands.literal("highsensy").then(Commands.argument("value", DoubleArgumentType.doubleArg()).executes((context -> setConfig(context.getSource(), ServerConfig.HIGH_SENSITIVITY, DoubleArgumentType.getDouble(context, "value"))))))
+                        .then(Commands.literal("lowsensy").then(Commands.argument("value", DoubleArgumentType.doubleArg()).executes((context -> setConfig(context.getSource(), ServerConfig.LOW_SENSITIVITY, DoubleArgumentType.getDouble(context, "value"))))))
+                        .then(Commands.literal("highcont").then(Commands.argument("value", IntegerArgumentType.integer()).executes((context -> setConfig(context.getSource(), ServerConfig.HIGH_SENSITIVITY_CONT, IntegerArgumentType.getInteger(context, "value"))))))
+                        .then(Commands.literal("lowcont").then(Commands.argument("value", IntegerArgumentType.integer()).executes((context -> setConfig(context.getSource(), ServerConfig.LOW_SENSITIVITY_CONT, IntegerArgumentType.getInteger(context, "value")))))))
                 .then(Commands.literal("random").then(Commands.argument("target", EntityArgument.players()).executes((context -> setRandom(context.getSource(), EntityArgument.getPlayers(context, "target"))))))
                 .then(Commands.literal("mode").executes((context -> reset(context.getSource())))
                                 .then(Commands.literal("off").executes(context -> setMode(context.getSource(), false)))
@@ -32,6 +39,12 @@ public class SensitivityCommand {
                         //        .then(Commands.literal("low").then(Commands.argument("value", IntegerArgumentType.integer()).executes(context -> setMode(context.getSource(), SensitivityManager.Mode.LOW, IntegerArgumentType.getInteger(context, "value")))))
                         //        .then(Commands.literal("random").then(Commands.argument("value", IntegerArgumentType.integer()).executes(context -> setMode(context.getSource(), SensitivityManager.Mode.RANDOM, IntegerArgumentType.getInteger(context, "value")))))
                 ));
+    }
+
+    private static <T> int setConfig(CommandSource src, ForgeConfigSpec.ConfigValue<T> config, T value) {
+        config.set(value);
+        src.sendSuccess(new StringTextComponent("コンフィグを変更しました"), true);
+        return 1;
     }
 
     private static int setRandom(CommandSource src, Collection<ServerPlayerEntity> players) {

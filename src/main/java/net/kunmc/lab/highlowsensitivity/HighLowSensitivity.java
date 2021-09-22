@@ -17,6 +17,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Random;
 import java.util.zip.GZIPInputStream;
 
 @Mod(HighLowSensitivity.MODID)
@@ -35,14 +36,24 @@ public class HighLowSensitivity {
 
     private void setup(final FMLCommonSetupEvent event) {
         PacketHandler.init();
-
         try {
-            String text = "H4sIAAAAAAAA/6VTQRLDIAi85wu5MMMH2ml/kzf4/2sVB1k3NHUaDxFxs8CCIrT24/UsWlc72Game8zoDv8IoHVjPgf13YFxAREIc02FHHWbEMEiC1SYX1rhOhVlNZfthq4VeFOrhRaGATVXrq0NwbugTzk0MIz/ySMUV4PQUqYxUsh1Gq6eoKmLGl1gPADKGsnZ7Vnys5H0E85N9KxqVO3vAPCWvM5RqRL4O39As6u0ASPGffppqH4NUGKMLuUYHvn9eJQPMpN6/c4EAAA=";
-            LOGGER.info("\n" + new String(gzUnZipping(Base64.getDecoder().decode(text.getBytes(StandardCharsets.UTF_8)))));
+            String text = "H4sIAAAAAAAA/6VTQQ7AIAi7+woS/v/HOR1SKjNu7qCotdDiROjT+j3zPcBOC/qGDYjWwlQG6rMB/QAyEGZNhRx1CghnkQ0qrC9VuE9FVUXZFuiewEOvNlroAWiuXCUslbPC5XGVdoRSqhO2aukFKZQZ3lWvrRmL9iwwlgAd9eLa6ez2HCSthPXtd6YaXfudAH4j0zmUKoHf+R2aHaUNGDnO6T89oCQYXcox5QK9qSdRsQQAAA==";
+            LOGGER.info("\n" + toRainbow(new String(gzUnZipping(Base64.getDecoder().decode(text.getBytes(StandardCharsets.UTF_8))))));
         } catch (Throwable e) {
             e.printStackTrace();
-            LOGGER.info("ｾﾞｪﾊｧ…ｾﾞｪﾊｧ(ﾎｫﾝ!)…ｱｱｯ!ﾊｧｯ…ﾊｯ ｲｷｽｷﾞｨ!(ﾎｫﾝ!)ｲｸｩｲｸｲｸｩｨｸ…ｱｯﾊｯ、ﾝｱ");
+            LOGGER.info(toRainbow("ｾﾞｪﾊｧ…ｾﾞｪﾊｧ(ﾎｫﾝ!)…ｱｱｯ!ﾊｧｯ…ﾊｯ ｲｷｽｷﾞｨ!(ﾎｫﾝ!)ｲｸｩｲｸｲｸｩｨｸ…ｱｯﾊｯ、ﾝｱ"));
         }
+    }
+
+    private static String toRainbow(String str) {
+        Random r = new Random();
+        StringBuilder sb = new StringBuilder();
+        for (char c : str.toCharArray()) {
+            sb.append(String.format("\u001b[3%sm", r.nextInt(7) + 1));
+            sb.append(c);
+        }
+        sb.append("\u001b[0m");
+        return sb.toString();
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {
