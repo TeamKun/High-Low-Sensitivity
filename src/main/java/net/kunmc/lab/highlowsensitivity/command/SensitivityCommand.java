@@ -2,7 +2,7 @@ package net.kunmc.lab.highlowsensitivity.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
+import net.kunmc.lab.highlowsensitivity.ServerConfig;
 import net.kunmc.lab.highlowsensitivity.data.SensitivityManager;
 import net.kunmc.lab.highlowsensitivity.data.SensitivityState;
 import net.kunmc.lab.highlowsensitivity.packet.PacketHandler;
@@ -25,14 +25,92 @@ public class SensitivityCommand {
                 .then(Commands.literal("unlock").then(Commands.argument("target", EntityArgument.players()).executes((context -> lockedPlayer(context.getSource(), EntityArgument.getPlayers(context, "target"), false)))))
                 .then(Commands.literal("set").then(Commands.argument("value", DoubleArgumentType.doubleArg(0, 0x114514)).then(Commands.argument("target", EntityArgument.players()).executes((context -> setSensitivity(context.getSource(), EntityArgument.getPlayers(context, "target"), DoubleArgumentType.getDouble(context, "value")))))))
                 .then(Commands.literal("reset").executes((context -> reset(context.getSource()))))
+                .then(Commands.literal("random").then(Commands.argument("target", EntityArgument.players()).executes((context -> setRandom(context.getSource(), EntityArgument.getPlayers(context, "target"))))))
                 .then(Commands.literal("mode").executes((context -> reset(context.getSource())))
-                        .then(Commands.literal("none").executes(context -> setMode(context.getSource(), SensitivityManager.Mode.NONE, -1)))
-                        .then(Commands.literal("high").then(Commands.argument("value", IntegerArgumentType.integer()).executes(context -> setMode(context.getSource(), SensitivityManager.Mode.HIGH, IntegerArgumentType.getInteger(context, "value")))))
-                        .then(Commands.literal("low").then(Commands.argument("value", IntegerArgumentType.integer()).executes(context -> setMode(context.getSource(), SensitivityManager.Mode.LOW, IntegerArgumentType.getInteger(context, "value")))))
-                        .then(Commands.literal("random").then(Commands.argument("value", IntegerArgumentType.integer()).executes(context -> setMode(context.getSource(), SensitivityManager.Mode.RANDOM, IntegerArgumentType.getInteger(context, "value")))))
+                                .then(Commands.literal("off").executes(context -> setMode(context.getSource(), false)))
+                                .then(Commands.literal("on").executes(context -> setMode(context.getSource(), true)))
+                        //        .then(Commands.literal("low").then(Commands.argument("value", IntegerArgumentType.integer()).executes(context -> setMode(context.getSource(), SensitivityManager.Mode.LOW, IntegerArgumentType.getInteger(context, "value")))))
+                        //        .then(Commands.literal("random").then(Commands.argument("value", IntegerArgumentType.integer()).executes(context -> setMode(context.getSource(), SensitivityManager.Mode.RANDOM, IntegerArgumentType.getInteger(context, "value")))))
                 ));
     }
 
+    private static int setRandom(CommandSource src, Collection<ServerPlayerEntity> players) {
+        SensitivityManager sm = SensitivityManager.getInstance();
+        sm.reset();
+        int i = 0;
+        StringBuilder sb = new StringBuilder();
+        sb.append(" ");
+        for (ServerPlayerEntity player : players) {
+            double hs = ServerConfig.HIGH_SENSITIVITY.get() / 200d;
+            double ls = ServerConfig.LOW_SENSITIVITY.get() / 200d;
+            boolean r = random.nextBoolean();
+            sm.getSensitivityState(player.getGameProfile().getId()).setFixedSensitivity(r ? hs : ls);
+            sm.getSensitivityState(player.getGameProfile().getId()).setLocked(true);
+            sm.sendUpdatePacket(player);
+            sb.append(player.getGameProfile().getName());
+            sb.append("[").append(r ? "HIGH" : "LOW").append("]");
+            sb.append(" ");
+            i++;
+        }
+        src.sendSuccess(new StringTextComponent(sb + "にしました"), true);
+        return i;
+    }
+
+    private static int setMode(CommandSource src, boolean enable) {
+        SensitivityManager sm = SensitivityManager.getInstance();
+        String str = enable ? "有効" : "無効";
+        if (sm.isEnableMode() == enable) {
+            src.sendFailure(new StringTextComponent("すでに" + str + "です"));
+            return 1;
+        }
+        sm.reset();
+        sm.setEnableMode(enable);
+        List<ServerPlayerEntity> players = new ArrayList<>(src.getServer().getPlayerList().getPlayers());
+        if (enable) {
+            Collections.shuffle(players, random);
+
+            int hc = ServerConfig.HIGH_SENSITIVITY_CONT.get();
+            int lc = ServerConfig.LOW_SENSITIVITY_CONT.get();
+
+            double hs = ServerConfig.HIGH_SENSITIVITY.get() / 200d;
+            double ls = ServerConfig.LOW_SENSITIVITY.get() / 200d;
+            StringBuilder sb = new StringBuilder();
+            sb.append(" ");
+            for (int i = 0; i < Math.min(hc + lc, players.size()); i++) {
+                ServerPlayerEntity player = players.get(i);
+                double sensy;
+                if (hc > 0 && lc > 0) {
+                    if (random.nextBoolean()) {
+                        sensy = hs;
+                        hc--;
+                    } else {
+                        sensy = ls;
+                        lc--;
+                    }
+                } else if (hc > 0) {
+                    sensy = hs;
+                    hc--;
+                } else {
+                    sensy = ls;
+                    lc--;
+                }
+                sb.append(player.getGameProfile().getName());
+                sb.append("[").append(sensy == ls ? "LOW" : "HIGH").append("]");
+                sb.append(" ");
+
+                sm.getSensitivityState(player.getGameProfile().getId()).setFixedSensitivity(sensy);
+            }
+            src.sendSuccess(new StringTextComponent("モードを有効し" + sb + "を対象に選びました"), true);
+        } else {
+            src.sendSuccess(new StringTextComponent("モードを無効にしました"), true);
+        }
+        for (ServerPlayerEntity player : players) {
+            sm.getSensitivityState(player.getGameProfile().getId()).setLocked(enable);
+            sm.sendUpdatePacket(player);
+        }
+        return 1;
+    }
+/*
     private static int setMode(CommandSource src, SensitivityManager.Mode mode, int num) {
         SensitivityManager sm = SensitivityManager.getInstance();
         SensitivityManager.Mode old = sm.getMode();
@@ -71,7 +149,7 @@ public class SensitivityCommand {
             sm.getSensitivityState(player.getGameProfile().getId()).setFixedSensitivity(sens);
             sb.append(player.getGameProfile().getName());
             if (mode == SensitivityManager.Mode.RANDOM)
-                sb.append("[").append(sens == 0 ? SensitivityManager.Mode.LOW.name() : SensitivityManager.Mode.HIGH.name()).append("]");
+                sb.append("[").append(sens == SensitivityManager.Mode.LOW.getSensitivity().get() ? SensitivityManager.Mode.LOW.name() : SensitivityManager.Mode.HIGH.name()).append("]");
             sb.append(" ");
         }
 
@@ -82,7 +160,7 @@ public class SensitivityCommand {
         src.sendSuccess(new StringTextComponent("モードを" + mode.name() + "に変更し" + sb + "を対象に選びました"), true);
 
         return 1;
-    }
+    }*/
 
     private static int lockedPlayer(CommandSource src, Collection<ServerPlayerEntity> players, boolean locked) {
         int i = 0;
