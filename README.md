@@ -9,6 +9,7 @@
 	"low sensitivity"が最低感度  
 	"high sensitivity cont"が最大感度になる人数  
 	"low sensitivity cont"が最低感度になる人数  
+コマンドでも変更可能
 
 個人ことに個別に感度を固定したり指定することが可能  
 プレイヤーセレクターにはバニラのセレクターを使用（@pで自分、@aで全員、@rでランダム)  
@@ -25,6 +26,12 @@ randomは選択したプレイヤーをHIGHかLOWにランダムで変える
           * off すべて戻す
     * random プレイヤーセレクター 選択したプレイヤーををランダムでHIGHかLOWにする  
     * reset すべてをリセットする
+    * config
+          * highsensy 実数 最大感度を設定  
+          * lowsensy 実数 最低感度を設定  
+          * highcont 整数 最大感度の人数設定  
+          * lowcont 整数 最低感度の人数設定
+    
 # 例　
 コンフィグで設定したとおりに選ぶ  
 /sensitivity mode on
@@ -43,3 +50,6 @@ randomは選択したプレイヤーをHIGHかLOWにランダムで変える
 
 感度の固定をリセットする  
 /sensitivity reset
+
+コンフィグの最大感度を810%にする  
+/sensitivity config highsensy 810
