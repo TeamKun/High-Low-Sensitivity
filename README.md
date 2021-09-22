@@ -26,7 +26,7 @@ randomは選択したプレイヤーをHIGHかLOWにランダムで変える
           * off すべて戻す
     * random プレイヤーセレクター 選択したプレイヤーををランダムでHIGHかLOWにする  
     * reset すべてをリセットする
-    * config
+    * config  
           * highsensy 実数 最大感度を設定  
           * lowsensy 実数 最低感度を設定  
           * highcont 整数 最大感度の人数設定  
