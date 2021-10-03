@@ -12,6 +12,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.play.server.STitlePacket;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -43,7 +44,7 @@ public class SensitivityCommand {
 
     private static <T> int setConfig(CommandSource src, ForgeConfigSpec.ConfigValue<T> config, T value) {
         config.set(value);
-        src.sendSuccess(new StringTextComponent("コンフィグを変更しました"), true);
+        src.sendSuccess(new StringTextComponent("コンフィグを変更しました"), false);
         return 1;
     }
 
@@ -61,11 +62,15 @@ public class SensitivityCommand {
             sm.getSensitivityState(player.getGameProfile().getId()).setLocked(true);
             sm.sendUpdatePacket(player);
             sb.append(player.getGameProfile().getName());
-            sb.append("[").append(r ? "HIGH" : "LOW").append("]");
+            String modeName = r ? "ハイセンシ" : "ローセンシ";
+            sb.append("[").append(modeName).append("]");
             sb.append(" ");
+
+            player.connection.send(new STitlePacket(STitlePacket.Type.TITLE, new StringTextComponent("あなたは" + modeName + "です。")));
+
             i++;
         }
-        src.sendSuccess(new StringTextComponent(sb + "にしました"), true);
+        src.sendSuccess(new StringTextComponent(sb + "にしました"), false);
         return i;
     }
 
@@ -89,7 +94,8 @@ public class SensitivityCommand {
             double ls = ServerConfig.LOW_SENSITIVITY.get() / 200d;
             StringBuilder sb = new StringBuilder();
             sb.append(" ");
-            for (int i = 0; i < Math.min(hc + lc, players.size()); i++) {
+            int ct = Math.min(hc + lc, players.size());
+            for (int i = 0; i < ct; i++) {
                 ServerPlayerEntity player = players.get(i);
                 double sensy;
                 if (hc > 0 && lc > 0) {
@@ -108,14 +114,19 @@ public class SensitivityCommand {
                     lc--;
                 }
                 sb.append(player.getGameProfile().getName());
-                sb.append("[").append(sensy == ls ? "LOW" : "HIGH").append("]");
+
+                String modeName = sensy == ls ? "ローセンシ" : "ハイセンシ";
+
+                sb.append("[").append(modeName).append("]");
                 sb.append(" ");
+
+                player.connection.send(new STitlePacket(STitlePacket.Type.TITLE, new StringTextComponent("あなたは" + modeName + "です。")));
 
                 sm.getSensitivityState(player.getGameProfile().getId()).setFixedSensitivity(sensy);
             }
-            src.sendSuccess(new StringTextComponent("モードを有効し" + sb + "を対象に選びました"), true);
+            src.sendSuccess(new StringTextComponent("モードを有効し" + sb + "を対象に選びました"), false);
         } else {
-            src.sendSuccess(new StringTextComponent("モードを無効にしました"), true);
+            src.sendSuccess(new StringTextComponent("モードを無効にしました"), false);
         }
         for (ServerPlayerEntity player : players) {
             sm.getSensitivityState(player.getGameProfile().getId()).setLocked(enable);
@@ -123,57 +134,6 @@ public class SensitivityCommand {
         }
         return 1;
     }
-/*
-    private static int setMode(CommandSource src, SensitivityManager.Mode mode, int num) {
-        SensitivityManager sm = SensitivityManager.getInstance();
-        SensitivityManager.Mode old = sm.getMode();
-        if (old == mode & mode == SensitivityManager.Mode.NONE) {
-            src.sendFailure(new StringTextComponent("すでに通常モードです"));
-            return 1;
-        }
-        List<ServerPlayerEntity> players = new ArrayList<>(src.getServer().getPlayerList().getPlayers());
-        if (mode != SensitivityManager.Mode.NONE) {
-            if (players.size() < num) {
-                src.sendFailure(new StringTextComponent("指定した人数が現在のプレイヤー数を越しています"));
-                return 1;
-            }
-            if (num == 0) {
-                src.sendFailure(new StringTextComponent("指定した人数が0です"));
-                return 1;
-            }
-        }
-
-        sm.reset();
-        if (mode == SensitivityManager.Mode.NONE) {
-            src.sendSuccess(new StringTextComponent("モードを通常にしました"), true);
-            for (ServerPlayerEntity player : players) {
-                sm.sendUpdatePacket(player);
-            }
-            return 1;
-        }
-        sm.setMode(mode);
-
-        Collections.shuffle(players, random);
-        StringBuilder sb = new StringBuilder();
-        sb.append(" ");
-        for (int i = 0; i < num; i++) {
-            ServerPlayerEntity player = players.get(i);
-            double sens = mode.getSensitivity().get();
-            sm.getSensitivityState(player.getGameProfile().getId()).setFixedSensitivity(sens);
-            sb.append(player.getGameProfile().getName());
-            if (mode == SensitivityManager.Mode.RANDOM)
-                sb.append("[").append(sens == SensitivityManager.Mode.LOW.getSensitivity().get() ? SensitivityManager.Mode.LOW.name() : SensitivityManager.Mode.HIGH.name()).append("]");
-            sb.append(" ");
-        }
-
-        for (ServerPlayerEntity player : players) {
-            sm.getSensitivityState(player.getGameProfile().getId()).setLocked(true);
-            sm.sendUpdatePacket(player);
-        }
-        src.sendSuccess(new StringTextComponent("モードを" + mode.name() + "に変更し" + sb + "を対象に選びました"), true);
-
-        return 1;
-    }*/
 
     private static int lockedPlayer(CommandSource src, Collection<ServerPlayerEntity> players, boolean locked) {
         int i = 0;
@@ -196,9 +156,9 @@ public class SensitivityCommand {
         }
         String str = (locked ? "固定" : "固定を解除");
         if (i > 0)
-            src.sendSuccess(new StringTextComponent(sb + "の感度を" + str + "しました。"), true);
+            src.sendSuccess(new StringTextComponent(sb + "の感度を" + str + "しました。"), false);
         else
-            src.sendSuccess(new StringTextComponent(str + "できるプレイヤーが存在しません"), true);
+            src.sendSuccess(new StringTextComponent(str + "できるプレイヤーが存在しません"), false);
 
         return i;
     }
@@ -217,9 +177,9 @@ public class SensitivityCommand {
             sb.append(player.getGameProfile().getName()).append(" ");
         }
         if (i > 0)
-            src.sendSuccess(new StringTextComponent(sb + "の感度を" + sensitivity + "%に固定しました。"), true);
+            src.sendSuccess(new StringTextComponent(sb + "の感度を" + sensitivity + "%に固定しました。"), false);
         else
-            src.sendSuccess(new StringTextComponent("感度を変更できるプレイヤーが存在しません"), true);
+            src.sendSuccess(new StringTextComponent("感度を変更できるプレイヤーが存在しません"), false);
 
         return i;
     }
@@ -227,7 +187,7 @@ public class SensitivityCommand {
     private static int reset(CommandSource src) {
         SensitivityManager.getInstance().reset();
         PacketHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new SensitivityMessage(true));
-        src.sendSuccess(new StringTextComponent("感度をすべてリセットしました"), true);
+        src.sendSuccess(new StringTextComponent("感度をすべてリセットしました"), false);
         return 1;
     }
 }

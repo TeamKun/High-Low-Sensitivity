@@ -22,7 +22,6 @@ import java.util.UUID;
 public class SensitivityManager implements INBTSerializable<CompoundNBT> {
     private static final SensitivityManager INSTANCE = new SensitivityManager();
     private static final Map<UUID, SensitivityState> playerStates = new HashMap<>();
-    private static final Random random = new Random();
     private boolean enableMode;
 
     public static SensitivityManager getInstance() {

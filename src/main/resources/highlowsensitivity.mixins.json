@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "highlowsensitivity.refmap.json",
   "mixins": [
+    "FMLHandshakeHandlerMixin",
     "MinecraftServerMixin"
   ],
   "injectors": {
